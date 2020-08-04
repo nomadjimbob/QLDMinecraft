@@ -1,0 +1,33 @@
+npc_devilsmouth_lyn:
+  type: assignment
+  actions:
+    on assignment:
+    - trigger name:click state:true
+    - trigger name:chat state:true
+  interact scripts:
+  - npc_devilsmouth_lyn_interact
+
+npc_devilsmouth_lyn_interact:
+  type: interact
+  steps:
+    1:
+      click trigger:
+        script:
+        - narrate format:npcchat "Well hello there"
+        - wait
+        - narrate format:npcchat "Where would you like to go?"
+        - wait
+        - narrate format:npcchat "<&click[lighthouse]>Lighthouse<&end_click>"
+      damage trigger:
+        script:
+        - narrate format:npcchat "Hey!"
+      chat trigger:
+        1:
+          trigger: /lighthouse/
+          script:
+          - execute as_player "dt travel lighthouse"
+        2:
+          trigger: /regex:.+/
+          script:
+          - narrate format:npcchat "What?"
+      

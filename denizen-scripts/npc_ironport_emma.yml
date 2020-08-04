@@ -1,0 +1,24 @@
+npc_ironport_emma:
+  type: assignment
+  actions:
+    on assignment:
+      - trigger name:click state:true
+      - trigger name:chat state:true
+      - trigger name:proximity state:true
+  interact scripts:
+  - npc_ironport_emma_interact
+
+npc_ironport_emma_interact:
+  type: interact
+  steps:
+    1:
+      proximity trigger:
+        entry:
+          script:
+            - random:
+              - narrate format:npcchat "Howdy"
+              - narrate format:npcchat "Cant talk, real busy today"
+              - narrate format:npcchat "You shouldnt be around here"
+              - repeat 1:
+                - narrate format:npcchat "This is hard work building this, um well I cant"
+                - narrate format:npcchat "tell you yet"

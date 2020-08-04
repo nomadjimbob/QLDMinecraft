@@ -1,0 +1,56 @@
+player:
+  type: world
+  events:
+    on player joins:
+    - if <server.has_file[/PlayerData/<player.uuid>.yml]>:
+      - yaml load:/PlayerData/<player.uuid>.yml id:<player.uuid>
+      - yaml id:<player.uuid> set Logins:++
+    - else:
+      - yaml create id:<player.uuid>
+      - yaml id:<player.uuid> set Name:<player.name>
+      - yaml id:<player.uuid> set Logins:1
+      - yaml savefile:/PlayerData/<player.uuid>.yml id:<player.uuid>
+
+    after player joins:
+    - if <yaml[<player.uuid>].read[npc_alan.tutorialdone]> != 1:
+      - delay 3
+      - narrate "<&6>Welcome to Ironport <player.name>"
+      - narrate "<&6>---------------------------------"
+      - delay 1
+      - narrate ""
+      - narrate "<&6>+ Since this is your first time here, go and visit Alan."
+      - narrate "<&6>+ He is usually fishing at the end of the jetty."
+    - narrate "<&e> You have <player.money> coins"
+    on player quits:
+    - yaml savefile:/PlayerData/<player.uuid>.yml id:<player.uuid>
+    - yaml unload id:<player.uuid>
+
+    on player chats:
+    - if <yaml[<player.uuid>].read[chatenabled]> != 1:
+      - narrate format:servererror "Chat is currently disabled for you"
+      - determine cancelled
+
+    on player changes air level:
+      - if <player.oxygen> = 0:
+        - hurt 5 <player>
+
+    on player enters ironport:
+    - actionbar "<&e>Entering Ironport"
+
+    on player exits ironport:
+    - actionbar "<&e>Exiting Ironport"
+
+    on player enters devilsmouth:
+    - actionbar "<&e>Entering Devils Mouth"
+
+    on player exits devilsmouth:
+    - actionbar "<&e>Exiting Devils Mouth"
+
+    on shutdown:
+    - foreach <server.list_online_players>:
+      - yaml savefile:/PlayerData/<def[value].uuid>.yml id:<def[value].uuid>
+
+    #on system time minuety every:10:
+    #- narrate "Saved" target:<player[nomadjimbob]>
+    #- foreach <server.list_online_players>:
+    #  - yaml savefile:/PlayerData/<def[value].uuid>.yml id:<def[value].uuid>

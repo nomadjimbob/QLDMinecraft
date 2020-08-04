@@ -1,0 +1,56 @@
+test:
+  type: world
+  events:
+    on choice_selector command: 
+        - foreach <context.args>:
+            - announce "Argument <def[loop_index]><&co><def[value]>" 
+        - determine fulfilled 
+
+npc_creative_scott:
+  type: assignment
+  actions:
+    on assignment:
+    - trigger name:click state:true
+    - trigger name:chat state:true
+  interact scripts:
+  - npc_creative_scott_interact
+
+npc_creative_scott_interact:
+  type: interact
+  steps:
+    1:
+      click trigger:
+        script:
+        - narrate format:npcchat "Howdy!"
+        - wait
+        - narrate format:npcchat "Did you want to fly somewhere?"
+        - wait
+        - narrate format:npcchat "<&click[/wow]>click here<&end_click>"
+        #- narrate format:cchat " - Ironport"
+        #- narrate format:cchat " - Cancel"
+        #- narrate "Say /lighthouse/ or /no|cancel/"
+      #chat trigger:
+      #  1:
+      #    trigger: /lighthouse/
+      #    script:
+      #    - run lyn_fly_player_lighthouse
+      #    - zap 2
+      #  2:
+      #    trigger: /No/ I don't want to
+      #    script:
+      #    - narrate format:cchat "KBye"
+
+#npc_creative_scott_fly_player_lighthouse:
+#  type: task
+#  script:
+#  - execute as_player "dt travel lighthouse"
+#  - wait 1
+#  - zap 1 npc_creative_scott_interact
+
+cmd_wow:
+  type: command
+  name: wow
+  description: None
+  usage: /wow
+  script:
+    - execute as_player "dt travel lighthouse"
