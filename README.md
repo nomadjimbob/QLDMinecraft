@@ -1,4 +1,4 @@
-<img src="https://imgur.com/RZu74IX" width="100%">
+<img src="https://i.imgur.com/RZu74IX.jpg" width="100%">
 
 # QLD Minecraft
 ### Season 1
