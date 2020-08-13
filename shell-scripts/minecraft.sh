@@ -1,8 +1,9 @@
 #!/bin/sh
 
-#############################################
+# Minecraft management script
+# Version: 1.1
+
 # Configration Options
-#############################################
 PAPER_TARGET_VERSION="0"
 PAPER_LAST_BUILD="0"
 MINECRAFT_DIR="/etc/spigot/"
@@ -11,9 +12,7 @@ WWW_DIR="/var/www/map.qldminecraft.com.au/"
 LOG_FILE="logs/latest.log"
 SCREEN_NAME="spigot"
 SCREEN_CMD="java -Xms12G -Xmx12G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true -jar "${MINECRAFT_DIR}${MINECRAFT_JAR}" nogui"
-MSG_CMD="ex narrate format:serverchat %s targets:<server.online_players>"
-#MSG_CMD="ex actionbar format:servernotice %s targets:<server.online_players>"
-
+MSG_CMD="ex narrate format:server %s targets:<server.online_players>"
 
 
 
@@ -27,11 +26,18 @@ CMD_VERSION=0
 CMD_VERSION_DATA="get"
 CMD_LAST_BUILD=0
 CMD_DELAY=10
+CMD_LISTUPDATES=0
+
+WHITE=$(tput setaf 0)
+GREEN=$(tput setaf 2)
+YELLO=$(tput setaf 3)
 
 
 minecraft_update()
 {
-    if [ -n "$(ps -ef | grep -i "screen .* ${SCREEN_NAME}" | grep -v 'grep')" ]; then
+    echo "Checking for updates..."
+
+    if [ $CMD_LISTUPDATES -eq 0 ] && [ -n "$(ps -ef | grep -i "screen .* ${SCREEN_NAME}" | grep -v 'grep')" ]; then
         minecraft_stop
 
         if [ $CMD_STOP -eq 0 ]; then
@@ -41,7 +47,7 @@ minecraft_update()
 
     cd "${MINECRAFT_DIR}"
     jenkins_download "Paper" "https://papermc.io/ci/job/Paper-1.16/"
-    if [ ! "${FILE_DOWNLOAD}" = "" ]; then
+    if [ $CMD_LISTUPDATES -eq 0 ] && [ ! "${FILE_DOWNLOAD}" = "" ]; then
         if [ -f "paper.jar" ]; then
             rm "paper.jar"
         fi
@@ -51,35 +57,27 @@ minecraft_update()
 
     cd "${MINECRAFT_DIR}plugins/"
     jenkins_download "ProtocolLib" "https://ci.dmulloy2.net/job/ProtocolLib/"
-    jenkins_download "MultiversePortals" "http://ci.onarandombox.com/job/Multiverse-Portals/" -3
     jenkins_download "MultiverseCore" "https://ci.onarandombox.com/job/Multiverse-Core/" -3
     jenkins_download "LuckPerms" "https://ci.lucko.me/job/LuckPerms/" "bukkit"
     jenkins_download "Floodgate" "https://ci.nukkitx.com/job/GeyserMC/job/Floodgate/job/development/" "bukkit"
     jenkins_download "Geyser" "https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/master/" "spigot"
     jenkins_download "EssentialsX" "https://ci.ender.zone/job/EssentialsX/"
+    #https://essentialsx.net/downloads.html
     jenkins_download "Depenizen" "https://ci.citizensnpcs.co/job/Depenizen/"
     jenkins_download "Denizen" "https://ci.citizensnpcs.co/job/Denizen_Developmental/"
     jenkins_download "Citizens2" "https://ci.citizensnpcs.co/job/Citizens2/"
+    jenkins_download "Sentinel" "https://ci.citizensnpcs.co/job/Sentinel/"
     jenkins_download "ViaBackwards" "https://ci.viaversion.com/job/ViaBackwards/"
     jenkins_download "ViaVersion" "https://ci.viaversion.com/job/ViaVersion/"
+    jenkins_download "TrainCarts" "https://ci.mg-dev.eu/job/TrainCarts/"
+    jenkins_download "FastAsyncWorldEdit" "https://ci.athion.net/job/FastAsyncWorldEdit-1.16/"
 }
 
 
 jenkins_download()
 {
-    printf "Checking updates for ${1}"
-
-    BUILD_INSTALLED=0
-    FILE_INSTALLED=""
-
-    if [ -f "${1}.txt" ]; then
-        BUILD_INSTALLED=$(cat "${1}.txt" | cut -f1 -d'|')
-        FILE_INSTALLED=$(cat "${1}.txt" | cut -f2 -d'|')
-
-        echo " (build ${BUILD_INSTALLED} installed)"
-    else
-        echo " (Not installed by updater)"
-    fi
+    printf "   Checking ${1}"
+    #printf "%-25s" "   ${1}"
 
     DETAIL=$(wget -q -O - "${2}lastSuccessfulBuild/api/xml?tree=artifacts[relativePath],id")
 
@@ -114,27 +112,46 @@ jenkins_download()
     else
         RELATIVE_PATH=$(echo "${DETAIL}" | xpath -q -e '(//relativePath/text())[1]')
         BUILD_DOWNLOAD=$(echo "${DETAIL}" | xpath -q -e '(//id/text())[1]')
-    fi    
-    
-    printf "   Latest build: ${BUILD_DOWNLOAD}"
-
-    if [ ${BUILD_DOWNLOAD} -gt ${BUILD_INSTALLED} ]; then
-        if [ -f "${FILE_INSTALLED}" ]; then
-            if [ -f "${FILE_INSTALLED}.bak" ]; then
-                rm "${FILE_INSTALLED}.bak"
-            fi
-            mv "${FILE_INSTALLED}" "${FILE_INSTALLED}.bak"
-        fi
-        printf "   Downloading update..."
-        URL="${2}lastSuccessfulBuild/artifact/${RELATIVE_PATH}"
-        wget -q -N - "${URL}"
-        FILE_DOWNLOAD=$(basename "${URL}")
-
-        echo "${BUILD_DOWNLOAD}|${FILE_DOWNLOAD}" > "${1}.txt"
-        echo "   Installed"
-    else
-        echo " (Skipped)"
     fi
+
+    BUILD_INSTALLED=0
+    FILE_INSTALLED=""
+
+    if [ -f "${1}.txt" ]; then
+        BUILD_INSTALLED=$(cat "${1}.txt" | cut -f1 -d'|')
+        FILE_INSTALLED=$(cat "${1}.txt" | cut -f2 -d'|')
+
+        if [ ${BUILD_DOWNLOAD} -gt ${BUILD_INSTALLED} ]; then
+            printf "\r%s%-25s %-25s %-25s" "${GREEN}" "   ${1}" "Installed: ${BUILD_INSTALLED}" "Available: ${BUILD_DOWNLOAD}${WHITE}"
+            #printf "%-25s" "${GREEN}${BUILD_DOWNLOAD} Available${WHITE}"
+    
+            if [ $CMD_LISTUPDATES -eq 0 ]; then
+                if [ -f "${FILE_INSTALLED}" ]; then
+                    if [ -f "${FILE_INSTALLED}.bak" ]; then
+                        rm "${FILE_INSTALLED}.bak"
+                    fi
+                    mv "${FILE_INSTALLED}" "${FILE_INSTALLED}.bak"
+                fi
+                printf "   Downloading update..."
+                URL="${2}lastSuccessfulBuild/artifact/${RELATIVE_PATH}"
+                wget -q -N - "${URL}"
+                FILE_DOWNLOAD=$(basename "${URL}")
+
+                echo "${BUILD_DOWNLOAD}|${FILE_DOWNLOAD}" > "${1}.txt"
+                echo "   Installed"
+            fi
+        else
+            printf "\r%-25s %-25s %-25s" "   ${1}" "Installed: ${BUILD_INSTALLED}" "No updates"
+            #printf "No updates"
+            #if [ $CMD_LISTUPDATES -eq 0 ]; then
+            #    echo " (Skipped)"
+            #fi
+        fi
+    else
+        printf "\r%s%-25s %-25s" "${YELLOW}" "   ${1}" "Not installed by script${WHITE}"
+    fi
+
+    echo ""
 }
 
 
@@ -150,7 +167,8 @@ script_usage()
     echo "-r --restart       Restart Minecraft server"
     echo "-x --stop          Stop Minecraft server"
     echo "-b --backup        Backup Minecraft server files and config"
-    echo "-u --update        Update Minecraft Jar"
+    echo "-u --update        Update Minecraft and plugins"
+    echo "-l --listupdates   List available updates"
     echo "-v --version  [ get | list | value ] Get the current, list available, or set the version target"
     echo "-i --build    Get the last build installed by this script"
     echo "-m --message  show message"
@@ -229,7 +247,7 @@ minecraft_stop()
         if [ $CMD_DELAY -ne 0 ]; then
             TIMER=$CMD_DELAY
             
-            STOP_MESSAGE="Server shutdown in %i minutes"
+            STOP_MESSAGE="Server shutdown in %i minute(s)"
 
             while [ $TIMER -gt 0 ];
             do
@@ -387,6 +405,9 @@ while [ "$1" != "" ]; do
         -u | --update )     shift
                             CMD_UPDATE=1
                             ;;
+        -l | --listupdates ) shift
+                            CMD_LISTUPDATES=1
+                            ;;
         -v | --version )    shift
                             CMD_VERSION=1
                             if [ -n "$1" ]; then
@@ -430,6 +451,10 @@ fi
 
 if [ $CMD_VERSION -eq 1 ]; then
     minecraft_version
+fi
+
+if [ $CMD_LISTUPDATES -eq 1 ]; then
+    minecraft_update
 fi
 
 if [ $CMD_STOP -eq 1 ] || [ $CMD_RESTART -eq 1 ]; then
