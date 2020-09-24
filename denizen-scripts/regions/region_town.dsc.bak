@@ -1,0 +1,41 @@
+region_town:
+    type: world
+    debug: false
+    events:
+        # on player places block:
+        #     - if !<player.in_group[developer]>:
+        #         - if <proc[qmp_region.find.type].context[<context.location>]> == town:
+        #             - if <player.flag[place_block_allow]||false> == false:
+        #                 - narrate 'XXYou cannot place blocks inside a town'
+        #                 - determine cancelled
+        #             - else:
+        #                 - flag player place_block_allow:!
+
+        # on player breaks block:
+        #     - if !<player.in_group[developer]>:
+        #         - if <proc[qmp_region.find.type].context[<context.location>]> == town:
+        #             - if <player.flag[break_block_allow]||false> == false:
+        #                 - narrate 'XXYou cannot break blocks inside a town'
+        #                 - determine cancelled
+        #             - else:
+        #                 - flag player break_block_allow:!
+
+        on lightning strikes:
+            # - if <proc[qmp_region.find.type].context[<context.location>]> == town:
+            - determine cancelled
+
+        on block ignites:
+            # - if <proc[qmp_region.find.type].context[<context.location>]> == town:
+            - determine cancelled
+
+        on block burns:
+            # - if <proc[qmp_region.find.type].context[<context.location>]> == town:
+            - determine cancelled
+
+        on block spreads:
+            # - if <proc[qmp_region.find.type].context[<context.location>]> == town:
+            - determine cancelled
+
+        on liquid spreads:
+            # - if <proc[qmp_region.find.type].context[<context.location>]> == town:
+            - determine cancelled

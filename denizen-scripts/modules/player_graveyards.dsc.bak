@@ -1,0 +1,31 @@
+player_graveyards:
+    type: world
+    debug: false
+    events:
+        on load:
+            - run qm_command.add.option def:player_graveyards_cmd|region|graveyardset
+            - run qm_command.add.tabcomplete def:region|graveyardset|_*regions
+            - run qm_command.add.tabcomplete def:region|graveyardclear|_*regions
+            # - run qm_lang.add def:graveyard
+
+
+player_graveyards_cmd:
+    type: task
+    debug: true
+    script:
+        - define action:<[1]||null>
+        - define option:<[2]||null>
+        - define region:<[3]||null>
+        - define value:<[4]||null>
+
+        - choose <[action]>:
+            - case region:
+                - choose <[option]>:
+                    - case graveyardset:
+                        - if <[region]> == null:
+                            - define region:<proc[qmp_region.find.id].context[<player.location>]||null>
+                        - if <[region]> != null:
+                            - run qm_region.yaml.set def:<[region]>|graveyard|<player.location.round>
+                            - narrate <proc[qmp_lang].context[<player||null>|added|graveyards]>
+                        - else:
+                            - narrate <proc[qmp_lang].context[<player||null>|not_in_region|graveyards]>
