@@ -3,10 +3,6 @@ qmw_chat:
     debug: false
     events:
         on player chats:
-            - if <server.sql_connections.contains[mysql]||false> == false:
-                - ~sql id:mysql connect:localhost:3306/qldminecraft username:qm password:XXHIDDENXX
-            - sql id:mysql 'update:INSERT into chat(datetime,fromuuid,message) VALUES("<util.time_now.epoch_millis>","<player.uuid>","<context.message.sql_escaped>");'
-
             - if <proc[qmp_player.is_developer].context[<player>]>:
                 - determine RAW_FORMAT:<proc[qmp_chat].context[<player>|<context.message>]>
             - else:
