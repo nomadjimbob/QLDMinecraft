@@ -255,6 +255,19 @@ qmp_player:
                 - determine true
         - determine false
 
+    is_bedrock:
+        - define target_player:<[1]||<empty>>
+        - if <[target_player].name.char_at[1]> == '*':
+            - determine true
+        - determine false
+
+    is_java:
+        - define target_player:<[1]||<empty>>
+        - if <[target_player].name.char_at[1]> == '*':
+            - determine false
+        - determine true
+
+
     loaded:
         - define target_player:<[1]||<empty>>
         - if <[target_player].is_player> && <yaml.list.contains[<[target_player].uuid>]>:
