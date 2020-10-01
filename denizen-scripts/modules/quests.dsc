@@ -66,7 +66,7 @@ qmw_quest:
 
                     - if <yaml[quests].read[quests.<[quest_id]>.objectives.<[objective_id]>.type]||<empty>> == 'block_break':
                         - define break_material:<yaml[quests].read[quests.<[quest_id]>.objectives.<[objective_id]>.material]||<empty>>
-                        - if  <[break_material]> == <context.material.name> || <[placed_material]> == '*':
+                        - if  <[break_material]> == <context.material.name> || <[break_material]> == '*':
                             - define objective_region_id:<yaml[quests].read[quests.<[quest_id]>.objectives.<[objective_id]>.region]||<empty>>
                             
                             - if <[objective_region_id]> == <empty> || <proc[qmp_region.in_region].context[<context.location>|<[objective_region_id]>]>:
@@ -305,7 +305,7 @@ qmp_quest:
             - define quest_id:<[2]||<empty>>
 
             - if <[target_player].is_player> && <[quest_id]> != <empty>:
-                - foreach <yaml[quests].list_keys[quests.<[quest_id]>.objectives]>:
+                - foreach <yaml[quests].list_keys[quests.<[quest_id]>.objectives]||<list[]>>:
                     - define objective_id:<[value]>
 
                     - choose <yaml[quests].read[quests.<[quest_id]>.objectives.<[objective_id]>.type]>:
