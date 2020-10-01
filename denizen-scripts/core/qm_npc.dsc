@@ -148,7 +148,7 @@ qm_npc:
         - define name:<[1]||<empty>>
         - define location:<[2]||<empty>>
         - if <[name]> != <empty>:
-            - create player <[name]> <[location]> save:result
+            - create player <&e><[name]> <[location]> save:result
             - determine <entry[result].created_npc.id>
         
         - determine <empty>
@@ -458,7 +458,7 @@ qm_npc_cmd:
                             - if <yaml[npc].list_keys[npcs].contains[<[npc_id]>]||false> && <server.npcs.contains[<npc[<[npc_id]>]||<empty>]>]>:
                                 - if <[npc_new_name]> != <empty>:
                                     - yaml id:npc set npcs.<[npc_id]>.name:<[npc_new_name]>
-                                    - rename <[npc_new_name]> t:<npc[<[npc_id]>]>
+                                    - rename <&e><[npc_new_name]> t:<npc[<[npc_id]>]>
                                     - narrate <proc[qmp_language].context[npc_renamed|npc|<map[id/<[npc_id]>|npc/<[npc_name]>|newname/<[npc_new_name]>].escaped>]>
                                 - else:
                                     - narrate <proc[qmp_language].context[npc_no_new_name|npc|<map[id/<[npc_id]>|npc/<[npc_name]>].escaped>]>
