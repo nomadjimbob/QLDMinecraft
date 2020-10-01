@@ -8,8 +8,8 @@ qmw_server:
             - foreach <yaml[server].read[start_commands]||<list[]>>:
                 - execute as_server <[value]>
             
-            - if <server.sql_connections.contains[mysql]||false> == false:
-                - ~sql id:mysql connect:localhost:3306/qldminecraft username:qm password:XXHIDDENXX
+            # - if <server.sql_connections.contains[mysql]||false> == false:
+            #     - ~sql id:mysql connect:localhost:3306/qldminecraft username:qm password:<NONE>
             
         
         after server start:
@@ -30,10 +30,13 @@ qmw_server:
                     - narrate <proc[qmp_lang].context[<player||null>|maintenance_enabled|server]>
             
             - narrate <proc[qmp_language].context[money_amount|server]><proc[qmp_server.format.money].context[<player.money>]>
-            - if <server.sql_connections.contains[mysql]||false> == false:
-                - ~sql id:mysql connect:localhost:3306/qldminecraft username:qm password:XXHIDDENXX
+            
+            - if <server.sql_connections.contains[mysql]||false>:
+                - ~sql id:mysql disconnect
+            - ~sql id:mysql connect:localhost:3306/qldminecraft username:qm password:<NONE>
             - ~sql id:mysql 'update:INSERT into login(datetime,uuid,action) VALUES("<util.time_now.epoch_millis>","<player.uuid>","0");'
             - ~sql id:mysql 'update:INSERT into username(uuid,username) VALUES("<player.uuid>","<player.name.sql_escaped>");'
+            - ~sql id:mysql disconnect
 
         on player joins:
             - if <player.is_op>:
@@ -42,11 +45,24 @@ qmw_server:
             - group add default
         
         on player quits:
+            - if <server.sql_connections.contains[mysql]||false>:
+                - ~sql id:mysql disconnect
+            - ~sql id:mysql connect:localhost:3306/qldminecraft username:qm password:<NONE>
             - sql id:mysql 'update:INSERT into login(datetime,uuid,action) VALUES("<util.time_now.epoch_millis>","<player.uuid>","1");'
+            - ~sql id:mysql disconnect
+
+
             - if <player.is_op>:
                 - adjust <player> is_op:false
             - group remove developer
             - group add default
+
+        on player chats:
+            - if <server.sql_connections.contains[mysql]||false>:
+                - ~sql id:mysql disconnect
+            - ~sql id:mysql connect:localhost:3306/qldminecraft username:qm password:<NONE>
+            - ~sql id:mysql 'update:INSERT into chat(datetime,fromuuid,message) VALUES("<util.time_now.epoch_millis>","<player.uuid>","<context.message.sql_escaped>");'
+            - ~sql id:mysql disconnect
 
 
 
@@ -159,7 +175,7 @@ qm_server:
 qmp_server:
     type: procedure
     debug: false
-    version: 260
+    version: 262
     script:
         - determine null
 
@@ -178,6 +194,10 @@ qmp_server:
         
         money:
             - define money:<[1]||0>
+
+            # - determine <&7><&chr[2B24]><&f><[money]>
+
+
             - define text:<element[]>
             - define gold:<[money].div[10000].round_down>
             - define silver:<[money].mod[10000].div[100].round_down>
