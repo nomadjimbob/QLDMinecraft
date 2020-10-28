@@ -3,4 +3,4 @@
 # QLD Minecraft
 ### Season 1
 
-This is the offical code behind the [QLD Minecraft](https://play.qldminecraft.com.au/) server.
+This respository is now archived and moved to [Drustcraft](https://github.com/nomadjimbob/drustcraft)
